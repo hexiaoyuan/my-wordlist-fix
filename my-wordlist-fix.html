@@ -418,21 +418,34 @@ WORDLISTS["chinese_simplified"] = [
 "皱", "畅", "叠", "阁", "莱", "敲", "辖", "钩", "痕", "坝",
 "巷", "饿", "祸", "丘", "玄", "溜", "曰", "逻", "彭", "尝",
 "卿", "妨", "艇", "吞", "韦", "怨", "矮", "歇" ];
-WORDLISTS["hex_arr"] = [];
-function dec2hex(i) {
-    return (i+0x10101).toString(16).substr(-3).toUpperCase();
-}
+WORDLISTS["hex_arr"] = []; // easy to find
 APP = {};
+APP.arg_d = 0;
+function idx2hex(i,d) {
+    return (d+i+0x10101).toString(16).substr(-3).toUpperCase();
+}
+function hex2idx(hex,d) {
+	return parseInt('0x'+hex) - d - 0x101;
+}
+function fix_arg_d() {
+	var d = parseInt(document.getElementById("txt_d").value);
+	APP.arg_d = d ? d : 0;
+	document.getElementById("txt_d").value = APP.arg_d;
+}
+
 // eth: 0x948d23f9c7e460c3a351d49276a57756ee5d9657
 MNEMONIC_E = 'approve intact between pony festival pizza proud film wrist hotel enemy submit song gap kit cousin fresh dose flower time pretty pyramid axis there';
+// 实屋很壮良淡邦础溜慢某蒋稿甲滑商察批友伪震勤新盗
+// 1574AD1AE6403AA62E6673B38F44723507C177A3FB4D828C3E730D3CD813652679188804
 
 function onload() {
     var tbodyRef = document.getElementById('tbl0').getElementsByTagName('tbody')[0];
     //WORDLISTS["english"]
     //WORDLISTS["chinese_simplified"]
     for (let i = 0; i < WORDLISTS["english"].length; i++) {
-		var hstr = dec2hex(i);
+		var hstr = idx2hex(i,0);
 		WORDLISTS.hex_arr.push(hstr); // init value
+
         var row = tbodyRef.insertRow();
         var cell0 = row.insertCell();
         var cell1 = row.insertCell();
@@ -457,10 +470,13 @@ function splitChineseCharacters(text) {
 	let matches = text.match(regex);
 	return matches ? matches : [];
 }
-function splitByLength(str, len) {
-	const result = [];
-	for (let i = 0; i < str.length; i += len) {
-		result.push(str.slice(i, i + len));
+function splitHexCharacters(text) {
+	var result = [];
+	for (let i = 0; i < text.length; i += 3) {
+		var hex = text.slice(i, i+3);
+		var idx = hex2idx(hex, APP.arg_d);
+		var hex = idx2hex(idx, 0);
+		result.push(hex);
 	}
 	return result;
 }
@@ -476,7 +492,7 @@ function calc_by_words(words, words_list) {
 		}
 		APP.es.push(WORDLISTS["english"][idx]);
 		APP.cs.push(WORDLISTS["chinese_simplified"][idx]);
-		APP.hs.push(WORDLISTS["hex_arr"][idx]);
+		APP.hs.push(idx2hex(idx, APP.arg_d));
 	}
 	return true;
 }
@@ -487,6 +503,7 @@ function show_abc() {
 }
 
 function click_a() {
+	fix_arg_d();
     var txt = document.getElementById('txt_a').value;
 	if (txt.length == 0) {
 		txt = MNEMONIC_E; // ONLY TEST
@@ -504,6 +521,7 @@ function click_a() {
 	log('click_a ok');
 }
 function click_b() {
+	fix_arg_d();
     var txt = document.getElementById('txt_b').value;
 	var ws = splitChineseCharacters(txt);
 	if (ws.length!=24) {
@@ -518,9 +536,9 @@ function click_b() {
 	log('click_b ok');
 }
 function click_c() {
+	fix_arg_d();
     var txt = document.getElementById('txt_c').value;
-	txt.sp
-	var ws = splitByLength(txt, 3);
+	var ws = splitHexCharacters(txt);
 	if (ws.length!=24) {
 		log('ERROR: need 24 words-c');
 		return;
@@ -540,6 +558,7 @@ function click_c() {
 <input type="text" id="txt_a" size=120 /><br/>
 <input type="text" id="txt_b" size=120 /><br/>
 <input type="text" id="txt_c" size=120 /><br/>
+<input type="text" id="txt_d" size=10 value='0' />
 <button type="button" onclick="click_a()">A</button>
 <button type="button" onclick="click_b()">B</button>
 <button type="button" onclick="click_c()">C</button>
