@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>my-workdlist-fix</title>
 </head>
-
 <script>
 WORDLISTS = {};
 WORDLISTS["english"] = [
@@ -419,57 +418,154 @@ WORDLISTS["chinese_simplified"] = [
 "皱", "畅", "叠", "阁", "莱", "敲", "辖", "钩", "痕", "坝",
 "巷", "饿", "祸", "丘", "玄", "溜", "曰", "逻", "彭", "尝",
 "卿", "妨", "艇", "吞", "韦", "怨", "矮", "歇" ];
-
+WORDLISTS["hex_arr"] = [];
 function dec2hex(i) {
-   return (i+0x10101).toString(16).substr(-3).toUpperCase();
+    return (i+0x10101).toString(16).substr(-3).toUpperCase();
 }
+APP = {};
+// eth: 0x948d23f9c7e460c3a351d49276a57756ee5d9657
+MNEMONIC_E = 'approve intact between pony festival pizza proud film wrist hotel enemy submit song gap kit cousin fresh dose flower time pretty pyramid axis there';
 
 function onload() {
-	var tbodyRef = document.getElementById('myTable').getElementsByTagName('tbody')[0];
-	//WORDLISTS["english"]
-	//WORDLISTS["chinese_simplified"]
-	for (let i = 0; i < WORDLISTS["english"].length; i++) {
-		var row = tbodyRef.insertRow();
-		var cell0 = row.insertCell();
-		var cell1 = row.insertCell();
-		var cell2 = row.insertCell();
-		var cell3 = row.insertCell();
-		cell0.innerHTML = i+1;
-		cell1.innerHTML = dec2hex(i);
-		cell2.innerHTML = WORDLISTS["english"][i];
-		cell3.innerHTML = WORDLISTS["chinese_simplified"][i];
-	}
+    var tbodyRef = document.getElementById('tbl0').getElementsByTagName('tbody')[0];
+    //WORDLISTS["english"]
+    //WORDLISTS["chinese_simplified"]
+    for (let i = 0; i < WORDLISTS["english"].length; i++) {
+		var hstr = dec2hex(i);
+		WORDLISTS.hex_arr.push(hstr); // init value
+        var row = tbodyRef.insertRow();
+        var cell0 = row.insertCell();
+        var cell1 = row.insertCell();
+        var cell2 = row.insertCell();
+        var cell3 = row.insertCell();
+        cell0.innerHTML = i+1;
+        cell1.innerHTML = hstr;
+        cell2.innerHTML = WORDLISTS["english"][i];
+        cell3.innerHTML = WORDLISTS["chinese_simplified"][i];
+    }
+	log('onload-ok');
 }
+function log(msg) {
+	document.getElementById("p_log").innerHTML = msg;
+}
+function splitEnglishCharacters(text) {
+	let matches = text.split(' ');
+	return matches ? matches : [];
+}
+function splitChineseCharacters(text) {
+	let regex = /[\u4e00-\u9fa5]/g;
+	let matches = text.match(regex);
+	return matches ? matches : [];
+}
+function splitByLength(str, len) {
+	const result = [];
+	for (let i = 0; i < str.length; i += len) {
+		result.push(str.slice(i, i + len));
+	}
+	return result;
+}
+function calc_by_words(words, words_list) {
+	APP.es = [];
+	APP.cs = [];
+	APP.hs = [];
+	for (var x of words) {
+		var idx = words_list.indexOf(x);
+		if (idx<0) {
+			console.error(`ERROR: word not found: ${x}`);
+			return false;
+		}
+		APP.es.push(WORDLISTS["english"][idx]);
+		APP.cs.push(WORDLISTS["chinese_simplified"][idx]);
+		APP.hs.push(WORDLISTS["hex_arr"][idx]);
+	}
+	return true;
+}
+function show_abc() {
+	document.getElementById("txt_a").value = APP.es.join(' ');
+	document.getElementById("txt_b").value = APP.cs.join('');
+	document.getElementById("txt_c").value = APP.hs.join('');
+}
+
+function click_a() {
+    var txt = document.getElementById('txt_a').value;
+	if (txt.length == 0) {
+		txt = MNEMONIC_E; // ONLY TEST
+	}
+	var ws = splitEnglishCharacters(txt);
+	if (ws.length!=24) {
+		log('ERROR: need 24 words-a');
+		return;
+	}
+	var ok = calc_by_words(ws, WORDLISTS.english);
+	if (!ok) {
+		return;
+	}
+	show_abc();
+	log('click_a ok');
+}
+function click_b() {
+    var txt = document.getElementById('txt_b').value;
+	var ws = splitChineseCharacters(txt);
+	if (ws.length!=24) {
+		log('ERROR: need 24 words-b');
+		return;
+	}
+	var ok = calc_by_words(ws, WORDLISTS.chinese_simplified);
+	if (!ok) {
+		return;
+	}
+	show_abc();
+	log('click_b ok');
+}
+function click_c() {
+    var txt = document.getElementById('txt_c').value;
+	txt.sp
+	var ws = splitByLength(txt, 3);
+	if (ws.length!=24) {
+		log('ERROR: need 24 words-c');
+		return;
+	}
+	var ok = calc_by_words(ws, WORDLISTS.hex_arr);
+	if (!ok) {
+		return;
+	}
+	show_abc();
+	log('click_c ok');
+}
+
 </script>
 
-
 <body onload="onload()">
-	<h1>my-worldlist-fix</h1>
-	<hr/>
-	<table id="myTable">
-		<thead>
-			<tr>
-				<th>No.</th>
-				<th>Hex</th>
-				<th>English</th>
-				<th>Chinese</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tfoot>
-			</tfoot>
-	</table>
-
-	<hr/>
-
-	<ul>
-		<li>https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt</li>
-		<li>https://github.com/bitcoin/bips/blob/master/bip-0039/chinese_simplified.txt</li>
-		<li>https://github.com/iancoleman/bip39</li>
-		<li>https://github.com/iancoleman/bip39/blob/master/src/js/wordlist_chinese_simplified.js</li>
-		<li>https://github.com/iancoleman/bip39/blob/master/src/js/wordlist_english.js</li>
-	</ul>
-	<hr/>
-
+<h1>my-worldlist-fix</h1>
+<input type="text" id="txt_a" size=120 /><br/>
+<input type="text" id="txt_b" size=120 /><br/>
+<input type="text" id="txt_c" size=120 /><br/>
+<button type="button" onclick="click_a()">A</button>
+<button type="button" onclick="click_b()">B</button>
+<button type="button" onclick="click_c()">C</button>
+<p id="p_log"></p>
+<hr/>
+<table id="tbl0">
+<thead>
+<tr>
+<th>No.</th>
+<th>Hex</th>
+<th>English</th>
+<th>Chinese</th>
+</tr>
+</thead>
+<tbody>
+<tfoot>
+</tfoot>
+</table>
+<hr/>
+<ul>
+<li>https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt</li>
+<li>https://github.com/bitcoin/bips/blob/master/bip-0039/chinese_simplified.txt</li>
+<li>https://github.com/iancoleman/bip39</li>
+<li>https://github.com/iancoleman/bip39/blob/master/src/js/wordlist_chinese_simplified.js</li>
+<li>https://github.com/iancoleman/bip39/blob/master/src/js/wordlist_english.js</li>
+</ul>
+<hr/>
 </body>
 </html>
